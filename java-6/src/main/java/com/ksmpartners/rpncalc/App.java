@@ -3,7 +3,8 @@ package com.ksmpartners.rpncalc;
 public class App 
 {
     private static Class[] mainClasses = {
-        com.ksmpartners.rpncalc.basic.RpnCalc.class
+        com.ksmpartners.rpncalc.basic.RpnCalc.class,
+        com.ksmpartners.rpncalc.composite.RpnCalc.class
     };
 
     private static Class lookupCalculatorClassByOrdinalString(String ordinalStr)
@@ -59,6 +60,8 @@ public class App
             if (mainClass != null) {
 
                 Object calc = mainClass.newInstance();
+
+                System.out.println("Begin: " + mainClass);
 
                 ((Calculator)calc).main();
             }
