@@ -1,9 +1,10 @@
 package com.ksmpartners.rpncalc.composite;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Stack;
+import java.util.Deque;
 import java.util.List;
 import java.util.LinkedList;
 
@@ -15,7 +16,7 @@ public class RpnCalc extends Calculator
 
     private boolean running = true;
 
-    private Stack<Double> stack = new Stack<Double>();
+    private Deque<Double> stack = new LinkedList<Double>();
     private Double[] regs = new Double[NUM_REGISTERS];
 
     private Map<String, Command> cmds = new HashMap<String, Command>();
@@ -125,8 +126,14 @@ public class RpnCalc extends Calculator
 
     private void showStack()
     {
-        for(int ii = 0; ii < stack.size(); ii++)
-            System.out.println((ii + 1) + "> " + stack.elementAt(ii));
+        int ii = 0;
+
+        for (Iterator<Double> it = stack.descendingIterator(); it.hasNext(); ) {
+            Double val = it.next();
+
+            System.out.println((ii + 1) + "> " + val);
+            ii++;
+        }
     }
 
     private Command parseSingleCommand(String cmdStr)

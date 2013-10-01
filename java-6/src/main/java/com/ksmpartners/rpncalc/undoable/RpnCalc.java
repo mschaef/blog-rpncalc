@@ -1,7 +1,9 @@
-package com.ksmpartners.rpncalc.basic;
+package com.ksmpartners.rpncalc.undoable;
 
-import java.util.Iterator;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Deque;
 import java.util.List;
@@ -17,17 +19,33 @@ public class RpnCalc extends Calculator
 
     private Deque<Double> stack = new LinkedList<Double>();
     private Double[] regs = new Double[NUM_REGISTERS];
+    private Command lastCmd = null;
 
     private Map<String, Command> cmds = new HashMap<String, Command>();
-
-    interface Command
+    
+    abstract class Command
     {
-        void execute();
+        private Deque<Double> oldStack;
+        private Double[] oldRegs;
+
+        void saveState()
+        {
+            oldStack = new LinkedList<Double>(stack);
+            oldRegs = Arrays.copyOf(regs, regs.length);
+        }
+
+        void restoreState()
+        {
+            stack = new LinkedList<Double>(oldStack);
+            regs = Arrays.copyOf(oldRegs, oldRegs.length);
+        }
+
+        abstract void execute();
     }
 
-    private class PushNumberCommand implements Command
+    private class PushNumberCommand extends Command
     {
-        Double number;
+        private Double number;
 
         PushNumberCommand(Double number)
         {
@@ -36,7 +54,27 @@ public class RpnCalc extends Calculator
 
         public void execute()
         {
+            saveState();
+
             stack.push(number);
+        }
+    }
+
+    private class CompositeCommand extends Command
+    {
+        private List<Command> subCmds = new LinkedList<Command>();
+
+        CompositeCommand(Collection<Command> subCmds)
+        {
+            this.subCmds.addAll(subCmds);
+        }
+
+        public void execute()
+        {
+            saveState();
+
+            for(Command subCmd : subCmds)
+                subCmd.execute();
         }
     }
 
@@ -44,6 +82,8 @@ public class RpnCalc extends Calculator
     {
         cmds.put("+", new Command() {
                 public void execute() {
+                    saveState();
+
                     Double x = stack.pop();
                     Double y = stack.pop();
 
@@ -53,6 +93,8 @@ public class RpnCalc extends Calculator
 
         cmds.put("-", new Command() {
                 public void execute() {
+                    saveState();
+
                     Double x = stack.pop();
                     Double y = stack.pop();
 
@@ -62,6 +104,8 @@ public class RpnCalc extends Calculator
 
         cmds.put("*", new Command() {
                 public void execute() {
+                    saveState();
+
                     Double x = stack.pop();
                     Double y = stack.pop();
 
@@ -71,6 +115,8 @@ public class RpnCalc extends Calculator
 
         cmds.put("/", new Command() {
                 public void execute() {
+                    saveState();
+
                     Double x = stack.pop();
                     Double y = stack.pop();
 
@@ -80,6 +126,8 @@ public class RpnCalc extends Calculator
 
         cmds.put("sto", new Command() {
                 public void execute() {
+                    saveState();
+
                     Double rnum = stack.pop();
 
                     regs[rnum.intValue()] = stack.pop();
@@ -88,6 +136,8 @@ public class RpnCalc extends Calculator
 
         cmds.put("rcl", new Command() {
                 public void execute() {
+                    saveState();
+
                     Double rnum = stack.pop();
 
                     stack.push(regs[rnum.intValue()]);
@@ -96,7 +146,17 @@ public class RpnCalc extends Calculator
                 
         cmds.put("drop", new Command() {
                 public void execute() {
+                    saveState();
+
                     stack.pop();
+                }
+            });
+
+        cmds.put("undo", new Command() {
+                public void execute() {
+                    saveState();
+
+                    lastCmd.restoreState();
                 }
             });
 
@@ -119,7 +179,7 @@ public class RpnCalc extends Calculator
         }
     }
 
-    private Command parseCommandString(String cmdStr)
+    private Command parseSingleCommand(String cmdStr)
         throws Exception
     {
         Command cmd = cmds.get(cmdStr);
@@ -128,6 +188,17 @@ public class RpnCalc extends Calculator
             return cmd;
         else
             return new PushNumberCommand(Double.parseDouble(cmdStr));
+    }
+
+    private Command parseCommandString(String cmdStr)
+        throws Exception
+    {
+        List<Command> subCmds = new LinkedList<Command>();
+
+        for (String subCmdStr : cmdStr.split("\\s+"))
+            subCmds.add(parseSingleCommand(subCmdStr));
+
+        return new CompositeCommand(subCmds);
     }
 
     public void main()
@@ -143,12 +214,15 @@ public class RpnCalc extends Calculator
             if (cmdLine == null)
                 break;
 
-            Command cmd = parseCommandString(cmdLine.trim());
+            Command cmd = parseCommandString(cmdLine);
 
             if (cmd == null)
                 System.err.println("Invalid command: " + cmdLine);
-            else
+            else {
                 cmd.execute();
+
+                lastCmd = cmd;
+            }
         }
     }
 }
