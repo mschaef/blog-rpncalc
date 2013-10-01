@@ -1,24 +1,28 @@
+package com.ksmpartners.rpncalc.basic;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
 
-public class RpnCalc
+import com.ksmpartners.rpncalc.Calculator;
+
+public class RpnCalc extends Calculator
 {
     private static final int NUM_REGISTERS = 20;
 
-    private static boolean running = true;
+    private boolean running = true;
 
-    private static Stack<Double> stack = new Stack<Double>();
-    private static Double[] regs = new Double[NUM_REGISTERS];
+    private Stack<Double> stack = new Stack<Double>();
+    private Double[] regs = new Double[NUM_REGISTERS];
 
-    private static Map<String, Command> cmds = new HashMap<String, Command>();
+    private Map<String, Command> cmds = new HashMap<String, Command>();
 
     interface Command
     {
         void execute();
     }
 
-    private static class PushNumberCommand implements Command
+    private class PushNumberCommand implements Command
     {
         Double number;
 
@@ -33,7 +37,8 @@ public class RpnCalc
         }
     }
 
-    static {
+    public RpnCalc()
+    {
         cmds.put("+", new Command() {
                 public void execute() {
                     Double x = stack.pop();
@@ -99,13 +104,13 @@ public class RpnCalc
             });
     }
 
-    private static void showStack()
+    private void showStack()
     {
         for(int ii = 0; ii < stack.size(); ii++)
             System.out.println((ii + 1) + "> " + stack.elementAt(ii));
     }
 
-    private static Command parseCommandString(String cmdStr)
+    private Command parseCommandString(String cmdStr)
         throws Exception
     {
         Command cmd = cmds.get(cmdStr);
@@ -116,7 +121,7 @@ public class RpnCalc
             return new PushNumberCommand(Double.parseDouble(cmdStr));
     }
 
-    private static void repl()
+    public void main()
         throws Exception
     {
         while(running) {
@@ -136,17 +141,5 @@ public class RpnCalc
             else
                 cmd.execute();
         }
-    }
-
-    public static void main(String[] args)
-    {
-        try {
-            repl();
-        } catch(Exception ex) {
-            System.err.println("Uncaught Exception: " + ex.getMessage());
-            ex.printStackTrace();
-        }
-
-        System.out.println("end run.");
     }
 }
