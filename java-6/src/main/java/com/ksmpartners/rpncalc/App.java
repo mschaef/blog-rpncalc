@@ -5,7 +5,8 @@ public class App
     private static Class[] mainClasses = {
         com.ksmpartners.rpncalc.basic.RpnCalc.class,
         com.ksmpartners.rpncalc.composite.RpnCalc.class,
-        com.ksmpartners.rpncalc.undoable.RpnCalc.class
+        com.ksmpartners.rpncalc.undoable.RpnCalc.class,
+        com.ksmpartners.rpncalc.stateobject.RpnCalc.class
     };
 
     private static Class lookupCalculatorClassByOrdinalString(String ordinalStr)
