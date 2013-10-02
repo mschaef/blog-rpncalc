@@ -35,29 +35,29 @@
   (doseq [[index val] (map list (range (count stack) 0 -1) (reverse stack) )]
     (printf "%d> %s\n" index val)))
 
-(defn find-command [ object ]
-  (if (number? object)
-    (make-push-command object)
-    (commands object)))
-
 (defn apply-command [ command state ]
   (if-let [ state-update (command state)]
     (conj state state-update)
     false))
 
-(defn read-command []
-  (read-string (.trim (.readLine *in*))))
+(defn find-command [ object ]
+  (if (number? object)
+    (make-push-command object)
+    (commands object)))
 
-(defn -main
-  "Main Entry point"
-  []
+(defn read-command [ str ]
+  (find-command (read-string str)))
+
+(defn parse-command-string [ str ]
+  (read-command (.trim str)))
+
+(defn -main []
   (loop [ state { :stack () :regs (vec (take 20 (repeat 0))) } ]
     (show-state state)
     (print "> ")
     (flush)
-    (let [command (find-command (read-command))]
+    (let [command (parse-command-string (.readLine *in*))]
       (if-let [new-state (apply-command command state)]
         (recur new-state)
-        nil)))
-  (println "end run."))
+        nil))))
 
