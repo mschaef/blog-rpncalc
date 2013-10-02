@@ -14,12 +14,12 @@
       '/ (fn [ { [x y & more] :stack } ]
            { :stack (cons (/ y x) more)})
 
-      'swap (fn [ { [x y & more] :stack } ]
-              { :stack (cons y (cons x more))})
+      'sto (fn [ { [rnum val & more] :stack regs :regs} ]
+           { :stack more :regs (assoc regs rnum val)})
 
-      'dup (fn [ { [x & more] :stack } ]
-             { :stack (cons x (cons x more))})
-
+      'rcl (fn [ { [rnum & more] :stack regs :regs} ]
+           { :stack (cons (regs rnum) more) })
+      
       'drop (fn [ { [x & more] :stack } ]
               { :stack more})
 
@@ -47,7 +47,7 @@
 (defn -main
   "Main Entry point"
   []
-  (loop [ state { :stack () } ]
+  (loop [ state { :stack () :regs (vec (take 20 (repeat 0))) } ]
     (show-state state)
     (print "> ")
     (flush)
