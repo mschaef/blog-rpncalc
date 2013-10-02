@@ -19,6 +19,9 @@ built with [Maven](http://maven.apache.org/). The `clj` project
 contains the [Clojure](http://clojure.org) implementations, and is
 built with [Leiningen](http://leiningen.org/).
 
+For both sub-projects, there is a top-level shell script, `run.sh`,
+that will build and then execute the project.
+
 ### Java implemenations
 
 * `basic` - A simple RPN calculator with support for the four basic
