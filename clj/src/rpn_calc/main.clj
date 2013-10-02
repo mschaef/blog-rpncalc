@@ -45,23 +45,20 @@
   (print "> ")
   (flush))
 
-(defn read-token [ ]
-  (println "read-token")
-  (clojure.main/skip-whitespace *in*)
-  (println (str "skipped-whitespace: "))
-  (read *in* false nil))
-
 (defn rpn-eval [ object stack ]
   (cond (number? object) (push object stack)
         (symbol? object) ((eval object) stack)
         :else (error "Bad value")))
 
+(defn read-command []
+  (read-string (.trim (.readLine *in*))))
+
 (defn rpn-repl []
-  (let [request-exit (Object.)]
-    (loop [ stack () ]
-      (show-stack stack)
-      (prompt)
-      (if-let [new-stack (rpn-eval (read-token) stack)]
+  (loop [ stack () ]
+    (show-stack stack)
+    (prompt)
+    (let [cmd (read-command)]
+      (if-let [new-stack (rpn-eval cmd stack)]
         (recur new-stack)
         nil))))
 
