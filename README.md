@@ -6,10 +6,39 @@ blog-rpncalc
 This project contains a set of JVM implementations of a reverse-polish
 style calculator.  They are written to be used as supporting materials
 for a set of blog postings on the
-[KSM Partners Blog](http://www.ksmpartners.com/blog/). As such, while
-you are welcome use this code as the basis for other projects, it will
-need work to add error handling, logging, unit tests, and many of the
-other attributes desirable in production quality code.
+[KSM Partners Blog](http://www.ksmpartners.com/blog/). Because of this
+intent, the code is focused more on concision and readability than on
+robustness.
+
+## Project Structure
+
+There are two top level sub-projects at the root of the distribution:
+`java` and `clj`. The `java` project contains the
+[Java](http://www.java.com/) implementations of the calculator and is
+built with [Maven](http://maven.apache.org/). The `clj` project
+contains the [Clojure](http://clojure.org) implementations, and is
+built with [Leiningen](http://leiningen.org/).
+
+### Java implemenations
+
+* `basic` - A simple RPN calculator with support for the four basic
+  mathematical operations and not much else.
+* `composite` - `basic` extended with composite commands that can be
+  composed of a sequence of other commands.
+* `undoable` - `composite` extended with the ability to reverse the
+  effects of a command that's already been executed.
+* `stateobject` - `undoable`, with all calculator state moved into a
+  first-class object.
+* `functional` - `stateobject` without global variable.
+* `functionalrf` - A minor refactoring of `functional` that simplifies
+  command state management.
+
+### Clojure implementations
+
+* `functionalrf` - A reimplementation of the Java `functionalrf` build
+  in Clojure.
+* `macro` - `functionalrf` extended with a macro to automate
+  generation of stack transformation commands.
 
 ## License and copyright
 
