@@ -27,13 +27,17 @@
               false)
       })
 
+(defn make-push-command [ object ] 
+  (fn [ { stack :stack } ]
+    { :stack (cons object stack) }))
+
 (defn show-state [ { stack :stack } ]
   (doseq [[index val] (map list (range (count stack) 0 -1) (reverse stack) )]
     (printf "%d> %s\n" index val)))
 
 (defn find-command [ object ]
   (if (number? object)
-    (fn [ { stack :stack } ] { :stack (cons object stack) })
+    (make-push-command object)
     (commands object)))
 
 (defn apply-command [ command state ]
