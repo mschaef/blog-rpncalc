@@ -41,10 +41,6 @@
   (doseq [[index val] (map list (range (count stack) 0 -1) (reverse stack) )]
     (printf "%d> %s\n" index val)))
 
-(defn prompt []
-  (print "> ")
-  (flush))
-
 (defn rpn-eval [ object stack ]
   (binding [ *ns* (find-ns 'rpn-calc.main)]
     (cond (number? object) (push object stack)
@@ -54,18 +50,16 @@
 (defn read-command []
   (read-string (.trim (.readLine *in*))))
 
-(defn rpn-repl []
-  (loop [ stack () ]
-    (show-stack stack)
-    (prompt)
-    (let [cmd (read-command)]
-      (if-let [new-stack (rpn-eval cmd stack)]
-        (recur new-stack)
-        nil))))
-
 (defn -main
   "Main Entry point"
   []
-  (rpn-repl)
+  (loop [ stack () ]
+    (show-stack stack)
+    (print "> ")
+    (flush)
+    (let [cmd (read-command)]
+      (if-let [new-stack (rpn-eval cmd stack)]
+        (recur new-stack)
+        nil)))
   (println "end run."))
 
