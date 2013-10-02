@@ -1,8 +1,5 @@
 (ns rpn-calc.main)
 
-(defn error [ message ]
-  (println "Error: " message))
-
 (def commands
      {
       '+ (fn [ stack ]
@@ -42,9 +39,9 @@
     (printf "%d> %s\n" index val)))
 
 (defn find-command [ object ]
-  (cond (number? object) (fn [ stack ] (cons object stack))
-        (symbol? object) (commands object)
-        :else (error "Bad value")))
+  (if (number? object)
+    (fn [ stack ] (cons object stack))
+    (commands object)))
 
 (defn read-command []
   (read-string (.trim (.readLine *in*))))
