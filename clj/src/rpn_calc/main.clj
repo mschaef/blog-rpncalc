@@ -45,7 +45,7 @@
     (make-push-command object)
     (commands object)))
 
-(defn read-command [ str ]
+(defn parse-single-command [ str ]
   (find-command (read-string str)))
 
 (defn make-composite-command [ subcommands ]
@@ -54,14 +54,20 @@
 
 (defn parse-command-string [ str ]
   (make-composite-command
-   (map read-command (.split (.trim str) "\\s+"))))
+   (map parse-single-command (.split (.trim str) "\\s+"))))
+
+(defn read-command-string [ state ]
+  (show-state state)
+  (print "> ")
+  (flush)
+  (.readLine *in*))
+
+(defn make-initial-state []
+  { :stack () :regs (vec (take 20 (repeat 0))) })
 
 (defn -main []
-  (loop [ state { :stack () :regs (vec (take 20 (repeat 0))) } ]
-    (show-state state)
-    (print "> ")
-    (flush)
-    (let [command (parse-command-string (.readLine *in*))]
+  (loop [ state (make-initial-state) ]
+    (let [command (parse-command-string (read-command-string state))]
       (if-let [new-state (apply-command state command)]
         (recur new-state)
         nil))))
