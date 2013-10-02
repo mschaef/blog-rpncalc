@@ -46,9 +46,10 @@
   (flush))
 
 (defn rpn-eval [ object stack ]
-  (cond (number? object) (push object stack)
-        (symbol? object) ((eval object) stack)
-        :else (error "Bad value")))
+  (binding [ *ns* (find-ns 'rpn-calc.main)]
+    (cond (number? object) (push object stack)
+          (symbol? object) ((eval object) stack)
+          :else (error "Bad value"))))
 
 (defn read-command []
   (read-string (.trim (.readLine *in*))))
