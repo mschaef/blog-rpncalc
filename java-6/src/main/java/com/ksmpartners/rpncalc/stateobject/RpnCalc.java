@@ -238,15 +238,11 @@ public class RpnCalc extends Calculator
 
             Command cmd = parseCommandString(cmdLine);
 
-            if (cmd == null)
-                System.err.println("Invalid command: " + cmdLine);
-            else {
-                State initialState = state;
+            State initialState = state;
 
-                state = cmd.execute(state);
+            state = cmd.execute(state);
 
-                lastState = initialState;
-            }
+            lastState = initialState;
         }
     }
 }
