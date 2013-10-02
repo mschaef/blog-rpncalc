@@ -21,7 +21,10 @@
            { :stack (cons (regs rnum) more) })
       
       'drop (fn [ { [x & more] :stack } ]
-              { :stack more})
+              { :stack more })
+
+      'undo (fn [ { prev :prev } ]
+              prev )
 
       'quit (fn [ {  } ]
               false)
@@ -35,9 +38,9 @@
   (doseq [[index val] (map list (range (count stack) 0 -1) (reverse stack) )]
     (printf "%d> %s\n" index val)))
 
-(defn apply-command [ state command  ]
-  (if-let [ state-update (command state)]
-    (conj state state-update)
+(defn apply-command [ initial-state command  ]
+  (if-let [ state-update (command initial-state)]
+    (assoc (conj initial-state state-update) :prev initial-state)
     false))
 
 (defn find-command [ object ]
@@ -71,4 +74,3 @@
       (if-let [new-state (apply-command state command)]
         (recur new-state)
         nil))))
-
