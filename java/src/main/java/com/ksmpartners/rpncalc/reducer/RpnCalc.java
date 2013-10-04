@@ -91,6 +91,17 @@ public class RpnCalc extends Calculator
                 }
             };
         }
+
+        State terminalState()
+        {
+            State state = null;
+
+            for(State candidateState : this)
+                if (candidateState != null)
+                    state = candidateState;
+
+            return state;
+        }
     }
 
     private class PushNumberCommand extends Command
@@ -119,12 +130,7 @@ public class RpnCalc extends Calculator
         
         public State execute(State in)
         {
-            State out = new State(in);
-
-            for(Command subCmd : subCmds)
-                out = subCmd.execute(out);
-
-            return out;
+            return new CommandStateReduction(in, subCmds).terminalState();
         }
     }
 
