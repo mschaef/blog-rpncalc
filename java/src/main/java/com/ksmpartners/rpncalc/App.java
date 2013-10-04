@@ -9,7 +9,8 @@ public class App
         com.ksmpartners.rpncalc.stateobject.RpnCalc.class,
         com.ksmpartners.rpncalc.functional.RpnCalc.class,
         com.ksmpartners.rpncalc.functionalrf.RpnCalc.class,
-        com.ksmpartners.rpncalc.iterator.RpnCalc.class
+        com.ksmpartners.rpncalc.iterator.RpnCalc.class,
+        com.ksmpartners.rpncalc.reducer.RpnCalc.class,
     };
 
     private static Class lookupCalculatorClassByOrdinalString(String ordinalStr)

@@ -1,4 +1,4 @@
-package com.ksmpartners.rpncalc.iterator;
+package com.ksmpartners.rpncalc.reducer;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -51,8 +51,44 @@ public class RpnCalc extends Calculator
 
             update(out);
 
-            return out; 
-       }
+            return out;
+        }
+    }
+
+
+    class CommandStateReduction implements Iterable<State>
+    {
+        State state = null;
+        Iterator<Command> cmds = null;
+
+        CommandStateReduction(State state, Iterable<Command> cmds)
+        {
+            this.state = state;
+            this.cmds = cmds.iterator();
+        }
+
+        public Iterator<State> iterator()
+        {
+            return new Iterator<State> ()
+            {
+                Command nextCmd = null;
+
+                public boolean hasNext()
+                {
+                    return (state != null) && cmds.hasNext();
+                }
+
+                public State next()
+                {
+                    return (state = cmds.next().execute(state));
+                }
+
+                public void remove()
+                { 
+                    throw new UnsupportedOperationException("Reducing streams are immutable.");
+                }
+            };
+        }
     }
 
     private class PushNumberCommand extends Command
@@ -165,6 +201,9 @@ public class RpnCalc extends Calculator
 
     private void showStack(State state)
     {
+        if (state == null)
+            return;
+
         int ii = 0;
 
         for (Iterator<Double> it = state.stack.descendingIterator(); it.hasNext(); ) {
@@ -243,16 +282,7 @@ public class RpnCalc extends Calculator
     public void main()
         throws Exception
     {
-        State state = new State();
-
-        for(Command cmd : new CommandStream()) {
-
-            state = cmd.execute(state);
-
-            if (state == null)
-                break;
-
+        for(State state : new CommandStateReduction(new State(), new CommandStream()))
             showStack(state);
-        }
     }
 }
