@@ -59,28 +59,30 @@ public class RpnCalc extends Calculator
     class CommandStateReduction implements Iterable<State>
     {
         State state = null;
-        Iterator<Command> cmds = null;
+        Iterable<Command> cmds = null;
 
         CommandStateReduction(State state, Iterable<Command> cmds)
         {
             this.state = state;
-            this.cmds = cmds.iterator();
+            this.cmds = cmds;
         }
 
         public Iterator<State> iterator()
         {
             return new Iterator<State> ()
             {
+                Iterator<Command> cmdIterator = cmds.iterator();
+
                 Command nextCmd = null;
 
                 public boolean hasNext()
                 {
-                    return (state != null) && cmds.hasNext();
+                    return (state != null) && cmdIterator.hasNext();
                 }
 
                 public State next()
                 {
-                    return (state = cmds.next().execute(state));
+                    return (state = cmdIterator.next().execute(state));
                 }
 
                 public void remove()
