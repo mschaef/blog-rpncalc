@@ -212,7 +212,7 @@ public class RpnCalc extends Calculator
 
                     String cmdLine = System.console().readLine();
  
-                    if (cmdLine != null) {
+                    if (cmdLine == null) {
                         try {
                             nextCmd = parseCommandString(cmdLine);
                         } catch (Exception ex) {
