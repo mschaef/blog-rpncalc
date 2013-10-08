@@ -73,20 +73,36 @@ public class RpnCalc extends Calculator
             {
                 private State state = initialState;
 
+                private boolean needsAdvance = true;
+
                 Iterator<Command> cmdIterator = cmds.iterator();
+
+                private void advanceIfNecessary()
+                {
+                    if (!needsAdvance)
+                        return;
+
+                    needsAdvance = false;
+
+                    if (cmdIterator.hasNext())
+                        state = cmdIterator.next().execute(state);
+                    else
+                        state = null;
+                }
 
                 public boolean hasNext()
                 {
-                    if (!cmdIterator.hasNext())
-                        return false;
+                    advanceIfNecessary();
 
-                    state = cmdIterator.next().execute(state);
-
-                    return (state != null);
+                    return state != null;
                 }
 
                 public State next()
                 {
+                    advanceIfNecessary();
+
+                    needsAdvance = true;
+
                     return state;
                 }
 
