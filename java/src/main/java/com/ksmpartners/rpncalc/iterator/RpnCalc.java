@@ -205,26 +205,37 @@ public class RpnCalc extends Calculator
             {
                 Command nextCmd = null;
 
-                public boolean hasNext()
+                private void advanceIfNecessary()
                 {
+                    if (nextCmd != null)
+                        return;
+
                     System.out.println();
                     System.out.print("> ");
 
                     String cmdLine = System.console().readLine();
  
-                    if (cmdLine == null) {
-                        try {
-                            nextCmd = parseCommandString(cmdLine);
-                        } catch (Exception ex) {
-                            throw new RuntimeException("Error while parsing command: " + cmdLine, ex);
-                        }
+                    if (cmdLine == null)
+                        return;
+
+                    try {
+                        nextCmd = parseCommandString(cmdLine);
+                    } catch (Exception ex) {
+                        throw new RuntimeException("Error while parsing command: " + cmdLine, ex);
                     }
+                }
+
+                public boolean hasNext()
+                {
+                    advanceIfNecessary();
 
                     return (nextCmd != null);
                 }
 
                 public Command next()
                 {
+                    advanceIfNecessary();
+
                     Command cmd = nextCmd;
 
                     nextCmd = null;
