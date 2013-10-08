@@ -99,11 +99,9 @@ public class RpnCalc extends Calculator
 
         State terminalState()
         {
-            Iterator<State> iter = this.iterator();
-
             State state = null;
 
-            while(iter.hasNext())
+            for(Iterator<State> iter = iterator(); iter.hasNext();)
                 state = iter.next();
 
             return state;
