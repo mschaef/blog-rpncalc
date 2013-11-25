@@ -1,8 +1,9 @@
 (ns rpn-calc.dfcompile)
 
 (defmacro stack-op [ before after ]
-  `(fn [ { [ ~@before & more# ] :stack } ] 
-     { :stack (concat ~after more# ) } ) )
+  `(with-meta (fn [ { [ ~@before & more# ] :stack } ] 
+                { :stack (concat ~after more# ) } )
+     { :before '~before :after '~after}))
 
 (def commands
      {
