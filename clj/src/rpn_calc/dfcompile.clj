@@ -29,6 +29,24 @@
               false)
       })
 
+(defn formal-bindings [ stack formals ]
+  { :stack  (drop (count formals) stack)
+   :bindings (reduce (fn [ bindings [ stack-elem formal ] ]
+                       (assoc bindings formal stack-elem))
+                     { }
+                     (map list stack formals))})
+
+(defn apply-substitutions [ form bindings ]
+  (if (seq? form)
+    (map #(apply-substitutions % bindings) form)
+    (or (form bindings)
+        form)))
+
+(defn apply-stack-op [ pre-stack stack-op ]
+  (let [ { before :before after :after } (meta stack-op)
+         { post-stack :stack bindings :bindings} (formal-bindings pre-stack before)]
+    (concat (map #(apply-substitutions % bindings) after) post-stack)))
+
 (defn make-push-command [ object ] 
   (stack-op [ ] [ object ]))
 
