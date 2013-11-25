@@ -14,6 +14,9 @@
       '/ (fn [ { [x y & more] :stack } ]
            { :stack (cons (/ y x) more)})
 
+      'sqrt (fn [ { [x & more] :stack } ]
+           { :stack (cons (Math/pow x 0.5) more)})
+
       'sto (fn [ { [rnum val & more] :stack regs :regs} ]
            { :stack more :regs (assoc regs rnum val)})
 

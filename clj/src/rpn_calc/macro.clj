@@ -10,6 +10,7 @@
       '- (stack-op [x y] [(- y x)])
       '* (stack-op [x y] [(* x y)])
       '/ (stack-op [x y] [(/ y x)])
+      'sqrt (stack-op [x] [(Math/pow x 0.5)])
       'drop (stack-op [ x ] [ ])
       'dup (stack-op [ x ] [ x x ])
       'swap (stack-op [ x y ] [ y x ])
