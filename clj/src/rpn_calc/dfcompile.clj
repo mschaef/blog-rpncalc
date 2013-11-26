@@ -1,9 +1,9 @@
 (ns rpn-calc.dfcompile)
 
-(defmacro stack-op [ before after ]
-  `(with-meta (fn [ { [ ~@before & more# ] :stack } ] 
-                { :stack (concat ~after more# ) } )
-     { :before '~before :after '~after}))
+(defmacro stack-op [ before-pic after-pic ]
+  `(with-meta (fn [ { [ ~@before-pic & more# ] :stack } ] 
+                { :stack (concat ~after-pic more# ) } )
+     { :before-pic '~before-pic :after-pic '~after-pic}))
 
 (def commands
      {
@@ -37,15 +37,27 @@
                      (map list stack formals))})
 
 (defn apply-substitutions [ form bindings ]
+  (println [ form bindings])
   (if (seq? form)
     (map #(apply-substitutions % bindings) form)
-    (or (form bindings)
+    (or (bindings form)
         form)))
 
 (defn apply-stack-op [ pre-stack stack-op ]
-  (let [ { before :before after :after } (meta stack-op)
-         { post-stack :stack bindings :bindings} (formal-bindings pre-stack before)]
-    (concat (map #(apply-substitutions % bindings) after) post-stack)))
+  (let [ { before-pic :before-pic after-pic :after-pic } (meta stack-op)
+         { remaining :stack bindings :bindings} (formal-bindings pre-stack before-pic)
+         after-pic-bindings (map (fn [ post-stack-element ] 
+                                  [(gensym) (apply-substitutions post-stack-element bindings)])
+                                after-pic)]
+
+    (println [after-pic-bindings remaining])
+
+    { :stack (concat (map first after-pic-bindings) remaining)
+
+     :bindings (reduce (fn [ bindings [sym binding]]
+                         (assoc bindings sym binding))
+                       {}
+                       op-stack-bindings)}))
 
 (defn make-push-command [ object ] 
   (stack-op [ ] [ object ]))
