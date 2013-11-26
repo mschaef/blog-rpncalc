@@ -29,35 +29,41 @@
               false)
       })
 
-(defn formal-bindings [ stack formals ]
-  { :stack  (drop (count formals) stack)
+(defn formal-bindings [  { stack :stack initial-bindings :bindings } formals ]
+  {
+   :stack  (drop (count formals) stack)
    :bindings (reduce (fn [ bindings [ stack-elem formal ] ]
                        (assoc bindings formal stack-elem))
-                     { }
+                     initial-bindings
                      (map list stack formals))})
 
 (defn apply-substitutions [ form bindings ]
-  (println [ form bindings])
   (if (seq? form)
     (map #(apply-substitutions % bindings) form)
     (or (bindings form)
         form)))
 
-(defn apply-stack-op [ pre-stack stack-op ]
-  (let [ { before-pic :before-pic after-pic :after-pic } (meta stack-op)
-         { remaining :stack bindings :bindings} (formal-bindings pre-stack before-pic)
+(defn apply-stack-op [ initial-state stack-op ]
+  (let [ { initial-stack :stack initial-bindings :bindings } initial-state
+         { before-pic :before-pic after-pic :after-pic } (meta stack-op)
+         { remaining :stack bindings :bindings} (formal-bindings initial-state before-pic)
          after-pic-bindings (map (fn [ post-stack-element ] 
-                                  [(gensym) (apply-substitutions post-stack-element bindings)])
-                                after-pic)]
-
-    (println [after-pic-bindings remaining])
-
-    { :stack (concat (map first after-pic-bindings) remaining)
-
-     :bindings (reduce (fn [ bindings [sym binding]]
+                                   [(gensym) (apply-substitutions post-stack-element bindings)])
+                                 after-pic)]
+    {
+     :stack (concat (map first after-pic-bindings) remaining)
+     :bindings (reduce (fn [ bindings [ sym binding ] ]
                          (assoc bindings sym binding))
-                       {}
-                       op-stack-bindings)}))
+                       initial-bindings
+                       after-pic-bindings)}))
+
+(defn dummy-stack []
+  (map #(symbol (str "stack-" %)) (range)))
+ 
+(defn compile-composite-command [ cmd-names ]
+  (reduce apply-stack-op
+          { :bindings {} :stack (dummy-stack)}
+          (map find-command cmd-names)))
 
 (defn make-push-command [ object ] 
   (stack-op [ ] [ object ]))
