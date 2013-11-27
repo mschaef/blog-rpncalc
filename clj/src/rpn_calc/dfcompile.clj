@@ -1,4 +1,5 @@
-(ns rpn-calc.dfcompile)
+(ns rpn-calc.dfcompile
+  (:require [clojure.set :refer [difference]]))
 
 (defmacro stack-op [ before-pic after-pic ]
   `(with-meta (fn [ { [ ~@before-pic & more# ] :stack } ] 
@@ -62,21 +63,30 @@
 
 (defn stack-sym? [ val ] (symbol-starting-with? val "stack-"))
 
+(defn ahash-set [ seqs ] (apply hash-set seqs))
+
 (defn referenced-symbols [ form ]
-    (cond (symbol? form) (list form) 
-          (seq? form) (apply hash-set
-                             (apply concat
-                                    (map referenced-symbols (rest form))))
+    (cond (symbol? form) (hash-set form)
+          (seq? form) (ahash-set (mapcat referenced-symbols (rest form)))
+          (map? form) (referenced-symbols (concat (keys form) (vals form)))
+          (set? form) (filter symbol? form)
           :else ()))
 
-(defn apply-stack-op [ initial-state stack-op ]
-  (let [ { initial-stack :stack initial-bindings :bindings } initial-state
-         { before-pic :before-pic after-pic :after-pic } (meta stack-op)
-         { remaining :stack bindings :bindings} (formal-bindings initial-state before-pic)
-         after-pic-bindings (map (fn [ post-stack-element ] 
-                                   [(gen-temp-sym)
-                                    (apply-substitutions post-stack-element bindings)])
-                                 after-pic)]
+(defn update-stack-state [ initial-state stack-op ]
+  (let [ { initial-stack :stack initial-bindings :bindings }
+         initial-state
+
+         { before-pic :before-pic after-pic :after-pic }
+         (meta stack-op)
+
+         { remaining :stack bindings :bindings}
+         (formal-bindings initial-state before-pic)
+
+         after-pic-bindings
+         (map (fn [ post-stack-element ] 
+                [(gen-temp-sym)
+                 (apply-substitutions post-stack-element bindings)])
+              after-pic)]
     {
      :stack (concat (map first after-pic-bindings) remaining)
      :bindings (reduce (fn [ bindings [ sym binding ] ]
@@ -86,24 +96,69 @@
 
 (defn dummy-stack []
   (map #(symbol (str "stack-" %)) (range)))
- 
+
+(defn composite-command-effect [ cmd-names ]
+  (reduce update-stack-state
+          { :bindings {} :stack (dummy-stack)}
+          (map find-command cmd-names)))
+
+(defn normalize-dep-map [ dep-map ]
+  (reduce (fn [ dep-map sym ]
+            (if (contains? dep-map sym)
+              dep-map
+              (assoc dep-map sym #{})))
+          dep-map
+          (referenced-symbols dep-map)))
+
+(defn binding-dep-map [ bindings ]
+  (normalize-dep-map
+   (reduce (fn [ dep-map [ binding form ]]
+             (assoc dep-map binding (referenced-symbols form)))
+           {}
+           bindings)))
+
+(defn keys-satisfying [ kvs pred? ]
+  (reduce (fn [ good-keys key ]
+            (if (pred? (kvs key))
+              (conj good-keys key)
+              good-keys))
+          #{}
+          (keys kvs)))
+
+(defn dep-map-ordering [ dep-map ]
+  (reverse
+   (loop [ tiers ()  dep-map dep-map ]
+     (let [ computable-syms (keys-satisfying dep-map empty?)]
+       (cond (empty? dep-map) tiers
+             (empty? computable-syms) :circular-deps
+             :else (recur (cons computable-syms tiers)
+                          (reduce (fn [ dep-map [ binding deps ]]
+                                    (if (contains? computable-syms binding)
+                                      dep-map
+                                      (assoc dep-map binding (difference deps computable-syms))))
+                                  {}
+                                  dep-map)))))))
+
 (defn compile-composite-command [ cmd-names ]
   (let [ { bindings :bindings stack :stack }
-         (reduce apply-stack-op
-                 { :bindings {} :stack (dummy-stack)}
-                 (map find-command cmd-names))
+         (composite-command-effect cmd-names)
 
          before-pic
-         (take-while (apply hash-set (apply concat (map referenced-symbols  (vals bindings))))
+         (take-while (ahash-set (mapcat referenced-symbols (vals bindings)))
                      (dummy-stack))
 
          after-pic
-         (take-while temp-sym? stack)]
+         (take-while temp-sym? stack)
 
-
-    [before-pic after-pic]
-    
-    ))
+         binding-order
+         (remove stack-sym?
+                 (mapcat seq (dep-map-ordering (binding-dep-map bindings))))]
+ 
+    `(fn ~(vec before-pic)
+       (let ~(vec (mapcat (fn [ binding ]
+                            `(~binding ~(bindings binding)))
+                          binding-order))
+         ~(vec after-pic)))))
 
 (defn show-state [ { stack :stack } ]
   (doseq [[index val] (map list (range (count stack) 0 -1) (reverse stack) )]
