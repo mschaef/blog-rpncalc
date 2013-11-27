@@ -29,6 +29,14 @@
               false)
       })
 
+(defn make-push-command [ object ] 
+  (stack-op [ ] [ object ]))
+
+(defn find-command [ object ]
+  (if (number? object)
+    (make-push-command object)
+    (commands object)))
+
 (defn formal-bindings [  { stack :stack initial-bindings :bindings } formals ]
   {
    :stack  (drop (count formals) stack)
@@ -43,12 +51,31 @@
     (or (bindings form)
         form)))
 
+(defn gen-temp-sym []
+  (gensym "temp-"))
+
+(defn symbol-starting-with? [ val prefix ]
+  (and (symbol? val)
+       (.startsWith (name val) prefix)))
+
+(defn temp-sym? [ val ] (symbol-starting-with? val "temp-"))
+
+(defn stack-sym? [ val ] (symbol-starting-with? val "stack-"))
+
+(defn referenced-symbols [ form ]
+    (cond (symbol? form) (list form) 
+          (seq? form) (apply hash-set
+                             (apply concat
+                                    (map referenced-symbols (rest form))))
+          :else ()))
+
 (defn apply-stack-op [ initial-state stack-op ]
   (let [ { initial-stack :stack initial-bindings :bindings } initial-state
          { before-pic :before-pic after-pic :after-pic } (meta stack-op)
          { remaining :stack bindings :bindings} (formal-bindings initial-state before-pic)
          after-pic-bindings (map (fn [ post-stack-element ] 
-                                   [(gensym) (apply-substitutions post-stack-element bindings)])
+                                   [(gen-temp-sym)
+                                    (apply-substitutions post-stack-element bindings)])
                                  after-pic)]
     {
      :stack (concat (map first after-pic-bindings) remaining)
@@ -61,12 +88,22 @@
   (map #(symbol (str "stack-" %)) (range)))
  
 (defn compile-composite-command [ cmd-names ]
-  (reduce apply-stack-op
-          { :bindings {} :stack (dummy-stack)}
-          (map find-command cmd-names)))
+  (let [ { bindings :bindings stack :stack }
+         (reduce apply-stack-op
+                 { :bindings {} :stack (dummy-stack)}
+                 (map find-command cmd-names))
 
-(defn make-push-command [ object ] 
-  (stack-op [ ] [ object ]))
+         before-pic
+         (take-while (apply hash-set (apply concat (map referenced-symbols  (vals bindings))))
+                     (dummy-stack))
+
+         after-pic
+         (take-while temp-sym? stack)]
+
+
+    [before-pic after-pic]
+    
+    ))
 
 (defn show-state [ { stack :stack } ]
   (doseq [[index val] (map list (range (count stack) 0 -1) (reverse stack) )]
@@ -76,11 +113,6 @@
   (if-let [ state-update (command initial-state)]
     (assoc (conj initial-state state-update) :prev initial-state)
     false))
-
-(defn find-command [ object ]
-  (if (number? object)
-    (make-push-command object)
-    (commands object)))
 
 (defn parse-single-command [ str ]
   (find-command (read-string str)))
