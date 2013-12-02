@@ -139,7 +139,7 @@
                                   {}
                                   dep-map)))))))
 
-(defn compile-composite-command [ cmd-names ]
+(defn composite-command-form [ cmd-names ]
   (let [ { bindings :bindings stack :stack }
          (composite-command-effect cmd-names)
 
@@ -154,11 +154,14 @@
          (remove stack-sym?
                  (mapcat seq (dep-map-ordering (binding-dep-map bindings))))]
  
-    `(fn ~(vec before-pic)
+    `(fn [ { ~(vec before-pic) :stack } ]
        (let ~(vec (mapcat (fn [ binding ]
                             `(~binding ~(bindings binding)))
                           binding-order))
-         ~(vec after-pic)))))
+         {:stack ~(vec after-pic)}))))
+
+(defn compile-composite-command [ cmd-names ]
+  (eval (composite-command-form cmd-names)))
 
 (defn show-state [ { stack :stack } ]
   (doseq [[index val] (map list (range (count stack) 0 -1) (reverse stack) )]
