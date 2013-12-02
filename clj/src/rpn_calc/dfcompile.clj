@@ -38,10 +38,10 @@
     (make-push-command object)
     (commands object)))
 
-(defn apply-substitutions [ form bindings ]
+(defn apply-substitutions [ form bmap ]
   (if (seq? form)
-    (map #(apply-substitutions % bindings) form)
-    (or (bindings form)
+    (map #(apply-substitutions % bmap) form)
+    (or (bmap form)
         form)))
 
 (defn gen-temp-sym []
@@ -62,11 +62,10 @@
         :else #{}))
 
 (defn apply-stack-op-to-state [ initial-state stack-op ]
-  (let [ bindings
-        (reduce (fn [ bindings [ stack-elem formal ] ]
-                  (assoc bindings formal stack-elem))
-                (:bindings initial-state)
-                (map list (:stack initial-state) (:before-pic (meta stack-op))))
+  (let [ before-bmap (reduce (fn [ bmap [ stack-elem formal ] ]
+                               (assoc bmap formal stack-elem))
+                             (:bmap initial-state)
+                             (map list (:stack initial-state) (:before-pic (meta stack-op))))
 
         after-temps
         (take (count (:after-pic (meta stack-op))) (repeatedly gen-temp-sym))]
@@ -74,16 +73,16 @@
      :stack (concat after-temps
                     (drop (count (:before-pic (meta stack-op))) (:stack initial-state)))
 
-     :bindings (reduce (fn [ after-bindings [ sym after-pic-elem ] ]
-                         (assoc after-bindings sym (apply-substitutions after-pic-elem bindings)))
-                       (:bindings initial-state)
-                       (map list after-temps (:after-pic (meta stack-op))))}))
+     :bmap (reduce (fn [ after-bmap [ sym after-pic-elem ] ]
+                     (assoc after-bmap sym (apply-substitutions after-pic-elem before-bmap)))
+                   (:bmap initial-state)
+                   (map list after-temps (:after-pic (meta stack-op))))}))
 
 (defn dummy-stack []
   (map #(symbol (str "stack-" %)) (range)))
 
 (defn initial-state []
-  { :bindings {} :stack (dummy-stack)})
+  { :bmap {} :stack (dummy-stack)})
 
 (defn composite-command-effect [ cmd-names ]
   (reduce apply-stack-op-to-state
@@ -98,12 +97,12 @@
           dep-map
           (all-symbols dep-map)))
 
-(defn binding-dep-map [ bindings ]
+(defn bmap-dep-map [ bmap ]
   (normalize-dep-map
-   (reduce (fn [ dep-map [ binding form ]]
-             (assoc dep-map binding (all-symbols form)))
+   (reduce (fn [ dep-map [ sym form ]]
+             (assoc dep-map sym (all-symbols form)))
            {}
-           bindings)))
+           bmap)))
 
 (defn keys-satisfying [ kvs pred? ]
   (reduce (fn [ good-keys key ]
@@ -123,32 +122,29 @@
       tiers
       (if-let [ satisfied (non-empty-set? (keys-satisfying dep-map empty?))]
         (recur (conj tiers satisfied )
-               (reduce (fn [ dep-map [ binding deps ]]
-                         (if (contains? satisfied binding)
+               (reduce (fn [ dep-map [ sym deps ]]
+                         (if (contains? satisfied sym)
                            dep-map
-                           (assoc dep-map binding (difference deps satisfied))))
+                           (assoc dep-map sym (difference deps satisfied))))
                        {}
                        dep-map))
         :circular-deps))))
 
-(defn binding-stack-symbols [ bindings ]
-  (take-while (ahash-set (mapcat all-symbols (vals bindings)))
+(defn bmap-stack-symbols [ bmap ]
+  (take-while (ahash-set (mapcat all-symbols (vals bmap)))
               (dummy-stack)))
 
-(defn binding-order [ bindings ]
-  (filter temp-sym?
-          (mapcat seq (dep-map-ordering (binding-dep-map bindings)))))
+(defn bmap-binding-order [ bmap ]
+  (filter temp-sym? (mapcat seq (dep-map-ordering (bmap-dep-map bmap)))))
 
 (defn composite-command-form [ cmd-names ]
-  (let [ { bindings :bindings stack :stack } (composite-command-effect cmd-names)
-         before-pic (binding-stack-symbols bindings)
-         after-pic (take-while temp-sym? stack)
-         binding-order (binding-order bindings)]
+  (let [ { bmap :bmap stack :stack } (composite-command-effect cmd-names)
+         before-pic (bmap-stack-symbols bmap)
+         after-pic (take-while temp-sym? stack)]
  
     `(fn [ { ~(vec before-pic) :stack } ]
-       (let ~(vec (mapcat (fn [ binding ]
-                            `(~binding ~(bindings binding)))
-                          binding-order))
+       (let ~(vec (mapcat (fn [ sym ] `(~sym ~(bmap sym)))
+                          (bmap-binding-order bmap)))
          {:stack ~(vec after-pic)}))))
 
 (def dist-3 '[dup * swap dup * + swap dup * + sqrt])
