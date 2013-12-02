@@ -160,6 +160,8 @@
                           binding-order))
          {:stack ~(vec after-pic)}))))
 
+(def dist-3 '[dup * swap dup * + swap dup * + sqrt])
+
 (defn compile-composite-command [ cmd-names ]
   (eval (composite-command-form cmd-names)))
 
@@ -168,20 +170,21 @@
     (printf "%d> %s\n" index val)))
 
 (defn apply-command [ initial-state command  ]
-  (if-let [ state-update (command initial-state)]
+  (if-let [ state-update  (command initial-state) ]
     (assoc (conj initial-state state-update) :prev initial-state)
     false))
 
-(defn parse-single-command [ str ]
-  (find-command (read-string str)))
+(defn parse-single-command [ cmd-name ]
+  (cond (string? cmd-name) (find-command (read-string cmd-name))
+        (symbol? cmd-name) (find-command cmd-name)
+        :else :no-command))
 
-(defn make-composite-command [ subcommands ]
+(defn make-composite-command [ cmd-names ]
   (fn [ state ]
-    (reduce apply-command state subcommands)))
+    (reduce apply-command state (map parse-single-command cmd-names))))
 
 (defn parse-command-string [ str ]
-  (make-composite-command
-   (map parse-single-command (.split (.trim str) "\\s+"))))
+  (make-composite-command (.split (.trim str) "\\s+")))
 
 (defn read-command-string [ state ]
   (show-state state)
