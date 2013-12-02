@@ -38,14 +38,6 @@
     (make-push-command object)
     (commands object)))
 
-(defn formal-bindings [  { stack :stack initial-bindings :bindings } formals ]
-  {
-   :stack  (drop (count formals) stack)
-   :bindings (reduce (fn [ bindings [ stack-elem formal ] ]
-                       (assoc bindings formal stack-elem))
-                     initial-bindings
-                     (map list stack formals))})
-
 (defn apply-substitutions [ form bindings ]
   (if (seq? form)
     (map #(apply-substitutions % bindings) form)
@@ -63,12 +55,19 @@
 
 (defn ahash-set [ seqs ] (apply hash-set seqs))
 
-(defn referenced-symbols [ form ]
-    (cond (symbol? form) (hash-set form)
-          (seq? form) (ahash-set (mapcat referenced-symbols (rest form)))
-          (map? form) (referenced-symbols (concat (keys form) (vals form)))
-          (set? form) (filter symbol? form)
-          :else ()))
+(defn all-symbols [ form ]
+  (cond (symbol? form) (hash-set form)
+        (seq? form) (ahash-set (filter symbol? (mapcat all-symbols form)))
+        (or (map? form) (set? form)) (all-symbols (flatten (seq form)))
+        :else #{}))
+
+(defn formal-bindings [ { stack :stack initial-bindings :bindings } formals ]
+  {
+   :stack  (drop (count formals) stack)
+   :bindings (reduce (fn [ bindings [ stack-elem formal ] ]
+                       (assoc bindings formal stack-elem))
+                     initial-bindings
+                     (map list stack formals))})
 
 (defn update-stack-state [ initial-state stack-op ]
   (let [ { initial-stack :stack initial-bindings :bindings }
@@ -106,12 +105,12 @@
               dep-map
               (assoc dep-map sym #{})))
           dep-map
-          (referenced-symbols dep-map)))
+          (all-symbols dep-map)))
 
 (defn binding-dep-map [ bindings ]
   (normalize-dep-map
    (reduce (fn [ dep-map [ binding form ]]
-             (assoc dep-map binding (referenced-symbols form)))
+             (assoc dep-map binding (all-symbols form)))
            {}
            bindings)))
 
@@ -141,20 +140,19 @@
                        dep-map))
         :circular-deps))))
 
+(defn binding-stack-symbols [ bindings ]
+  (take-while (ahash-set (mapcat all-symbols (vals bindings)))
+              (dummy-stack)))
+
+(defn binding-order [ bindings ]
+  (filter temp-sym?
+          (mapcat seq (dep-map-ordering (binding-dep-map bindings)))))
+
 (defn composite-command-form [ cmd-names ]
-  (let [ { bindings :bindings stack :stack }
-         (composite-command-effect cmd-names)
-
-         before-pic
-         (take-while (ahash-set (mapcat referenced-symbols (vals bindings)))
-                     (dummy-stack))
-
-         after-pic
-         (take-while temp-sym? stack)
-
-         binding-order
-         (filter temp-sym?
-                 (mapcat seq (dep-map-ordering (binding-dep-map bindings))))]
+  (let [ { bindings :bindings stack :stack } (composite-command-effect cmd-names)
+         before-pic (binding-stack-symbols bindings)
+         after-pic (take-while temp-sym? stack)
+         binding-order (binding-order bindings)]
  
     `(fn [ { ~(vec before-pic) :stack } ]
        (let ~(vec (mapcat (fn [ binding ]
