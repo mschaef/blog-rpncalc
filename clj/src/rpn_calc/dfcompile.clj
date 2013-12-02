@@ -61,31 +61,24 @@
         (or (map? form) (set? form)) (all-symbols (flatten (seq form)))
         :else #{}))
 
-(defn formal-bindings [ { stack :stack initial-bindings :bindings } formals ]
-  {
-   :stack  (drop (count formals) stack)
-   :bindings (reduce (fn [ bindings [ stack-elem formal ] ]
-                       (assoc bindings formal stack-elem))
-                     initial-bindings
-                     (map list stack formals))})
 
-(defn update-stack-state [ initial-state stack-op ]
-  (let [ { initial-stack :stack initial-bindings :bindings }
-         initial-state
+(defn apply-stack-op-to-state [ initial-state stack-op ]
+  (let [ { initial-stack :stack initial-bindings :bindings } initial-state
 
-         { before-pic :before-pic after-pic :after-pic }
-         (meta stack-op)
+         { before-pic :before-pic after-pic :after-pic } (meta stack-op)
 
-         { remaining :stack bindings :bindings}
-         (formal-bindings initial-state before-pic)
+         bindings (reduce (fn [ bindings [ stack-elem formal ] ]
+                            (assoc bindings formal stack-elem))
+                          initial-bindings
+                          (map list initial-stack before-pic))
 
-         after-pic-bindings
-         (map (fn [ post-stack-element ] 
-                [(gen-temp-sym)
-                 (apply-substitutions post-stack-element bindings)])
-              after-pic)]
+         after-pic-bindings (map (fn [ post-stack-element ] 
+                                   [(gen-temp-sym) (apply-substitutions post-stack-element bindings)])
+                                 after-pic)]
     {
-     :stack (concat (map first after-pic-bindings) remaining)
+     :stack (concat (map first after-pic-bindings)
+                    (drop (count before-pic) initial-stack))
+
      :bindings (reduce (fn [ bindings [ sym binding ] ]
                          (assoc bindings sym binding))
                        initial-bindings
@@ -94,9 +87,12 @@
 (defn dummy-stack []
   (map #(symbol (str "stack-" %)) (range)))
 
+(defn initial-state []
+  { :bindings {} :stack (dummy-stack)})
+
 (defn composite-command-effect [ cmd-names ]
-  (reduce update-stack-state
-          { :bindings {} :stack (dummy-stack)}
+  (reduce apply-stack-op-to-state
+          (initial-state)
           (map find-command cmd-names)))
 
 (defn normalize-dep-map [ dep-map ]
