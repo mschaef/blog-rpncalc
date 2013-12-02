@@ -31,7 +31,7 @@
       })
 
 (defn make-push-command [ object ] 
-  (stack-op [ ] [ object ]))
+  (eval `(stack-op [ ] [ ~object ])))
 
 (defn find-command [ object ]
   (if (number? object)
