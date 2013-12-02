@@ -63,25 +63,23 @@
 
 
 (defn apply-stack-op-to-state [ initial-state stack-op ]
-  (let [ { initial-stack :stack initial-bindings :bindings } initial-state
+  (let [ bindings
+        (reduce (fn [ bindings [ stack-elem formal ] ]
+                  (assoc bindings formal stack-elem))
+                (:bindings initial-state)
+                (map list (:stack initial-state) (:before-pic (meta stack-op))))
 
-         { before-pic :before-pic after-pic :after-pic } (meta stack-op)
-
-         bindings (reduce (fn [ bindings [ stack-elem formal ] ]
-                            (assoc bindings formal stack-elem))
-                          initial-bindings
-                          (map list initial-stack before-pic))
-
-         after-pic-bindings (map (fn [ post-stack-element ] 
-                                   [(gen-temp-sym) (apply-substitutions post-stack-element bindings)])
-                                 after-pic)]
+        after-pic-bindings
+        (map (fn [ post-stack-element ] 
+               [(gen-temp-sym) (apply-substitutions post-stack-element bindings)])
+             (:after-pic (meta stack-op)))]
     {
      :stack (concat (map first after-pic-bindings)
-                    (drop (count before-pic) initial-stack))
+                    (drop (count (:before-pic (meta stack-op))) (:stack initial-state)))
 
      :bindings (reduce (fn [ bindings [ sym binding ] ]
                          (assoc bindings sym binding))
-                       initial-bindings
+                       (:bindings initial-state)
                        after-pic-bindings)}))
 
 (defn dummy-stack []
