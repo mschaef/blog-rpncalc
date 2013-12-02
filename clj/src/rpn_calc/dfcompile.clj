@@ -125,19 +125,23 @@
           #{}
           (keys kvs)))
 
+(defn non-empty-set? [ set ]
+  (and (> (count set) 0)
+       set))
+
 (defn dep-map-ordering [ dep-map ]
-  (reverse
-   (loop [ tiers ()  dep-map dep-map ]
-     (let [ computable-syms (keys-satisfying dep-map empty?)]
-       (cond (empty? dep-map) tiers
-             (empty? computable-syms) :circular-deps
-             :else (recur (cons computable-syms tiers)
-                          (reduce (fn [ dep-map [ binding deps ]]
-                                    (if (contains? computable-syms binding)
-                                      dep-map
-                                      (assoc dep-map binding (difference deps computable-syms))))
-                                  {}
-                                  dep-map)))))))
+  (loop [ tiers [] dep-map dep-map ]
+    (if (empty? dep-map)
+      tiers
+      (if-let [ satisfied (non-empty-set? (keys-satisfying dep-map empty?))]
+        (recur (conj tiers satisfied )
+               (reduce (fn [ dep-map [ binding deps ]]
+                         (if (contains? satisfied binding)
+                           dep-map
+                           (assoc dep-map binding (difference deps satisfied))))
+                       {}
+                       dep-map))
+        :circular-deps))))
 
 (defn composite-command-form [ cmd-names ]
   (let [ { bindings :bindings stack :stack }
