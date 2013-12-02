@@ -205,3 +205,18 @@
       (if-let [new-state (apply-command state command)]
         (recur new-state)
         nil))))
+
+(defn bench []
+  (let [ dist-3-cfc (compile-composite-command dist-3)
+        dist-3-ifc (make-composite-command dist-3)
+        n 20000]
+
+    (println 'dist-3-ifc)
+    (time (dotimes [ _ n ] (dist-3-ifc { :stack [ 1 2 3 ] })))
+    (println 'dist-3-cfc)
+    (time (dotimes [ _ n ] (dist-3-cfc { :stack [ 1 2 3 ] })))
+
+    (println 'dist-3-if)
+    (time (dotimes [ _ n ] ((make-composite-command dist-3) { :stack [ 1 2 3 ] })))
+    (println 'dist-3-cf)
+    (time (dotimes [ _ n ] ((compile-composite-command dist-3) { :stack [ 1 2 3 ] }))))) 
