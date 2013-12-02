@@ -38,20 +38,9 @@
     (make-push-command object)
     (commands object)))
 
-(defn apply-substitutions [ form bmap ]
-  (if (seq? form)
-    (map #(apply-substitutions % bmap) form)
-    (or (bmap form)
-        form)))
-
-(defn gen-temp-sym []
-  (gensym "temp-"))
-
-(defn symbol-starting-with? [ val prefix ]
+(defn temp-sym? [ val ]
   (and (symbol? val)
-       (.startsWith (name val) prefix)))
-
-(defn temp-sym? [ val ] (symbol-starting-with? val "temp-"))
+       (.startsWith (name val) "temp-")))
 
 (defn ahash-set [ seqs ] (apply hash-set seqs))
 
@@ -60,6 +49,15 @@
         (seq? form) (ahash-set (filter symbol? (mapcat all-symbols form)))
         (or (map? form) (set? form)) (all-symbols (flatten (seq form)))
         :else #{}))
+
+(defn apply-substitutions [ form bmap ]
+  (if (seq? form)
+    (map #(apply-substitutions % bmap) form)
+    (or (bmap form)
+        form)))
+
+(defn gen-temp-sym []
+  (gensym "temp-"))
 
 (defn apply-stack-op-to-state [ initial-state stack-op ]
   (let [ before-bmap (reduce (fn [ bmap [ stack-elem formal ] ]
@@ -147,8 +145,6 @@
                           (bmap-binding-order bmap)))
          {:stack ~(vec after-pic)}))))
 
-(def dist-3 '[dup * swap dup * + swap dup * + sqrt])
-
 (defn compile-composite-command [ cmd-names ]
   (eval (composite-command-form cmd-names)))
 
@@ -188,6 +184,8 @@
       (if-let [new-state (apply-command state command)]
         (recur new-state)
         nil))))
+
+(def dist-3 '[dup * swap dup * + swap dup * + sqrt])
 
 (defn bench []
   (let [ dist-3-cfc (compile-composite-command dist-3)
