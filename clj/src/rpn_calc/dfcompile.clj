@@ -61,7 +61,6 @@
         (or (map? form) (set? form)) (all-symbols (flatten (seq form)))
         :else #{}))
 
-
 (defn apply-stack-op-to-state [ initial-state stack-op ]
   (let [ bindings
         (reduce (fn [ bindings [ stack-elem formal ] ]
@@ -69,18 +68,16 @@
                 (:bindings initial-state)
                 (map list (:stack initial-state) (:before-pic (meta stack-op))))
 
-        after-pic-bindings
-        (map (fn [ post-stack-element ] 
-               [(gen-temp-sym) (apply-substitutions post-stack-element bindings)])
-             (:after-pic (meta stack-op)))]
+        after-temps
+        (take (count (:after-pic (meta stack-op))) (repeatedly gen-temp-sym))]
     {
-     :stack (concat (map first after-pic-bindings)
+     :stack (concat after-temps
                     (drop (count (:before-pic (meta stack-op))) (:stack initial-state)))
 
-     :bindings (reduce (fn [ bindings [ sym binding ] ]
-                         (assoc bindings sym binding))
+     :bindings (reduce (fn [ after-bindings [ sym after-pic-elem ] ]
+                         (assoc after-bindings sym (apply-substitutions after-pic-elem bindings)))
                        (:bindings initial-state)
-                       after-pic-bindings)}))
+                       (map list after-temps (:after-pic (meta stack-op))))}))
 
 (defn dummy-stack []
   (map #(symbol (str "stack-" %)) (range)))
