@@ -61,8 +61,6 @@
 
 (defn temp-sym? [ val ] (symbol-starting-with? val "temp-"))
 
-(defn stack-sym? [ val ] (symbol-starting-with? val "stack-"))
-
 (defn ahash-set [ seqs ] (apply hash-set seqs))
 
 (defn referenced-symbols [ form ]
@@ -155,7 +153,7 @@
          (take-while temp-sym? stack)
 
          binding-order
-         (remove stack-sym?
+         (filter temp-sym?
                  (mapcat seq (dep-map-ordering (binding-dep-map bindings))))]
  
     `(fn [ { ~(vec before-pic) :stack } ]
