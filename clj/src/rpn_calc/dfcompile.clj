@@ -65,16 +65,19 @@
                              (:bmap initial-state)
                              (map list (:stack initial-state) (:before-pic (meta stack-op))))
 
-        after-temps
-        (take (count (:after-pic (meta stack-op))) (repeatedly gen-temp-sym))]
+        after-bpairs
+        (map (fn [ after-pic-elem ]
+               [(gen-temp-sym) (apply-substitutions after-pic-elem before-bmap)])
+             (:after-pic (meta stack-op)))
+        ]
     {
-     :stack (concat after-temps
+     :stack (concat (map first after-bpairs)
                     (drop (count (:before-pic (meta stack-op))) (:stack initial-state)))
 
      :bmap (reduce (fn [ after-bmap [ sym after-pic-elem ] ]
                      (assoc after-bmap sym (apply-substitutions after-pic-elem before-bmap)))
                    (:bmap initial-state)
-                   (map list after-temps (:after-pic (meta stack-op))))}))
+                   after-bpairs)}))
 
 (defn dummy-stack []
   (map #(symbol (str "stack-" %)) (range)))
