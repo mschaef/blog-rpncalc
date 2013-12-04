@@ -163,7 +163,7 @@ public class RpnCalc extends Calculator
 
             long beginT = System.nanoTime();
 
-            for(int ii = 0; ii < 50000; ii++) {
+            for(int ii = 0; ii < 500000; ii++) {
 
                 s = new State();
                 
@@ -275,7 +275,7 @@ public class RpnCalc extends Calculator
             });
 
 
-        cmds.put("test", new Command() {
+        cmds.put("bench", new Command() {
                 public State execute(State in) {
                     return doTest(in);
                 }

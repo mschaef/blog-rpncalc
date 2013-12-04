@@ -196,7 +196,7 @@
 (defn bench []
   (let [ dist-3-cfc (compile-composite-command dist-3)
         dist-3-ifc (make-composite-command dist-3)
-        n 50000]
+        n 500000]
 
     (println 'dist-3-ifc)
     (time (dotimes [ _ n ] (dist-3-ifc { :stack [ 1 2 3 ] })))
