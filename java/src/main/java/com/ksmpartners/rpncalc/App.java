@@ -11,6 +11,7 @@ public class App
         com.ksmpartners.rpncalc.functionalrf.RpnCalc.class,
         com.ksmpartners.rpncalc.iterator.RpnCalc.class,
         com.ksmpartners.rpncalc.reducer.RpnCalc.class,
+        com.ksmpartners.rpncalc.experimental.RpnCalc.class,
     };
 
     private static Class lookupCalculatorClassByOrdinalString(String ordinalStr)
