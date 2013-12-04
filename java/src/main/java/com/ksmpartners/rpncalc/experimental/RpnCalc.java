@@ -163,7 +163,7 @@ public class RpnCalc extends Calculator
 
             long beginT = System.nanoTime();
 
-            for(int ii = 0; ii < 200000; ii++) {
+            for(int ii = 0; ii < 50000; ii++) {
 
                 s = new State();
                 

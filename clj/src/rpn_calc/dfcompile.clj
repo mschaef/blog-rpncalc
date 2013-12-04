@@ -67,15 +67,18 @@
 
         after-bpairs
         (map (fn [ after-pic-elem ]
-               [(gen-temp-sym) (apply-substitutions after-pic-elem before-bmap)])
-             (:after-pic (meta stack-op)))
-        ]
+               (let [ expanded (apply-substitutions after-pic-elem before-bmap)]
+                 [(if (symbol? expanded) expanded (gen-temp-sym))
+                  expanded]))
+             (:after-pic (meta stack-op)))]
     {
      :stack (concat (map first after-bpairs)
                     (drop (count (:before-pic (meta stack-op))) (:stack initial-state)))
 
-     :bmap (reduce (fn [ after-bmap [ sym after-pic-elem ] ]
-                     (assoc after-bmap sym (apply-substitutions after-pic-elem before-bmap)))
+     :bmap (reduce (fn [ after-bmap [ sym binding ]]
+                     (if (= sym binding)
+                       after-bmap
+                       (assoc after-bmap sym binding)))
                    (:bmap initial-state)
                    after-bpairs)}))
 
@@ -193,14 +196,9 @@
 (defn bench []
   (let [ dist-3-cfc (compile-composite-command dist-3)
         dist-3-ifc (make-composite-command dist-3)
-        n 20000]
+        n 50000]
 
     (println 'dist-3-ifc)
     (time (dotimes [ _ n ] (dist-3-ifc { :stack [ 1 2 3 ] })))
     (println 'dist-3-cfc)
-    (time (dotimes [ _ n ] (dist-3-cfc { :stack [ 1 2 3 ] })))
-
-    (println 'dist-3-if)
-    (time (dotimes [ _ n ] ((make-composite-command dist-3) { :stack [ 1 2 3 ] })))
-    (println 'dist-3-cf)
-    (time (dotimes [ _ n ] ((compile-composite-command dist-3) { :stack [ 1 2 3 ] }))))) 
+    (time (dotimes [ _ n ] (dist-3-cfc { :stack [ 1 2 3 ] }))))) 
