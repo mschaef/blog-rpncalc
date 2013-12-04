@@ -6,7 +6,7 @@
 
   :dependencies [[org.clojure/clojure "1.5.0"]]
 
-  :plugins [[lein-nodisassemble "0.1.2"]]  
+  ;:plugins [[lein-nodisassemble "0.1.2"]]  
 
   :repl-options {
                  :host "0.0.0.0"
