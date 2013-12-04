@@ -140,10 +140,10 @@
          before-pic (bmap-stack-symbols bmap)
          after-pic (take-while temp-sym? stack)]
  
-    `(fn [ { ~(vec before-pic) :stack } ]
+    `(fn [ { [ ~@before-pic & more# ] :stack } ]
        (let ~(vec (mapcat (fn [ sym ] `(~sym ~(bmap sym)))
                           (bmap-binding-order bmap)))
-         {:stack ~(vec after-pic)}))))
+         {:stack (concat ~(vec after-pic) more#)}))))
 
 (defn compile-composite-command [ cmd-names ]
   (eval (composite-command-form cmd-names)))
