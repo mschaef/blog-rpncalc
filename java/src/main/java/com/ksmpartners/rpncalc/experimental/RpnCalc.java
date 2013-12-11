@@ -183,6 +183,36 @@ public class RpnCalc extends Calculator
         return s;
     }
 
+    State doTest2(State in)
+    {
+        State s = null;
+
+        try {
+
+            Command cmd =  parseCommandString("dist3");
+
+            long beginT = System.nanoTime();
+
+            for(int ii = 0; ii < 500000; ii++) {
+
+                s = new State();
+                
+                s.stack.push(new Double(3));
+                s.stack.push(new Double(4));
+                s.stack.push(new Double(0));
+
+                s = cmd.execute(s);
+            }
+
+            s.stack.push(new Double((System.nanoTime() - beginT)) / 1000000);
+
+        } catch (Exception ex) {
+            throw new RuntimeException("Error during test.", ex);
+        }
+
+        return s;
+    }
+
 
     public RpnCalc()
     {
@@ -255,6 +285,16 @@ public class RpnCalc extends Calculator
                     s.stack.push(y);
                 }
             });
+
+        cmds.put("dist3", new Command() {
+                public void update(State s) {
+                    Double x = s.stack.pop();
+                    Double y = s.stack.pop();
+                    Double z = s.stack.pop();
+
+                    s.stack.push(Math.pow((x * x) + (y * y) + (z * z), 0.5));
+                }
+            });
                 
         cmds.put("drop", new Command() {
                 public void update(State s) {
@@ -278,6 +318,12 @@ public class RpnCalc extends Calculator
         cmds.put("bench", new Command() {
                 public State execute(State in) {
                     return doTest(in);
+                }
+            });
+
+        cmds.put("bench2", new Command() {
+                public State execute(State in) {
+                    return doTest2(in);
                 }
             });
 
