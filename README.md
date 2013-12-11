@@ -44,6 +44,9 @@ that will build and then execute the project.
   in Clojure.
 * `macro` - `functionalrf` extended with a macro to automate
   generation of stack transformation commands.
+* `dfcompile` - A version of `macro` that adds a simple compiler that
+  translates from sequences of calculator operators into Clojure
+  function definitions.
 
 ## License and copyright
 
