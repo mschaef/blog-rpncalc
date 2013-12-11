@@ -35,6 +35,8 @@ that will build and then execute the project.
 * `functional` - `stateobject` without global variable.
 * `functionalrf` - A minor refactoring of `functional` that simplifies
   command state management.
+* `reducer` - A version of `functionalrf` that uses functional
+  reduction to replace explicit looping.
 
 ### Clojure implementations
 
