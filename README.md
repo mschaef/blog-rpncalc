@@ -6,8 +6,19 @@ blog-rpncalc
 This project contains a set of JVM implementations of a reverse-polish
 style calculator.  They are written to be used as supporting materials
 for a set of blog postings on the
-[KSM Partners Blog](http://www.ksmpartners.com/blog/). Because of this
-intent, the code is focused more on concision and readability than on
+[KSM Partners Blog](http://www.ksmpartners.com/blog/):
+
+* [Part 0: Introduction](http://www.ksmpartners.com/2013/10/middle-school-math-reverse-polish-notation-and-software-design/)
+* [Part 1: A Simple RPN Calcualtor in Java and the Command Pattern](http://www.ksmpartners.com/2013/10/rpn-calc-part-1-a-simple-calculator-in-java-and-the-command-pattern/)
+* [Part 2: Composite Commands](http://www.ksmpartners.com/2013/10/rpn-calc-part-2-composite-commands/)
+* [Part 3: Implementing Undo](http://www.ksmpartners.com/2013/11/rpn-calc-part-3-undo/)
+* [Part 4: A Noun for State](http://www.ksmpartners.com/2013/12/rpn-calc-part-4-a-noun-for-state/)
+* [Part 5: Eliminating the Globals](http://www.ksmpartners.com/2013/12/rpn-calc-part-5-eliminating-the-globals/)
+* [Part 6: Refactoring the REPL](http://www.ksmpartners.com/2014/01/rpn-calc-part-6-refactoring-the-repl-with-an-iterator/)
+* [Part 7: Refactoring Loops with Reduce](http://www.ksmpartners.com/2014/01/rpn-calc-part-7-refactoring-loops-with-reduce/)
+
+Because of the intent for this code to support a series of blog posts,
+the code is focused more on concision and readability than on
 robustness.
 
 ## Project Structure
