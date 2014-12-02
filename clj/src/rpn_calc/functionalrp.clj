@@ -69,8 +69,7 @@
   (.readLine *in*))
 
 (defn make-initial-state []
-  {
-   :stack ()
+  {:stack ()
    :regs (vec (take 20 (repeat 0)))
    })
 
