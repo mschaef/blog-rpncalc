@@ -1,3 +1,14 @@
+/* Copyright (c) KSM Technology Partners. All rights reserved.
+ *
+ * The use and distribution terms for this software are covered by the
+ * Eclipse Public License 1.0 (https://opensource.org/licenses/EPL-2.0)
+ * which can be found in the file epl-v10.html at the root of this distribution.
+ * By using this software in any fashion, you are agreeing to be bound by
+ * the terms of this license.
+ *
+ * You must not remove this notice, or any other, from this software.
+ */
+
 package com.ksmpartners.rpncalc.experimental;
 
 import java.util.Arrays;
@@ -38,7 +49,7 @@ public class RpnCalc extends Calculator
     }
 
     private Map<String, Command> cmds = new HashMap<String, Command>();
-    
+
     abstract class Command
     {
         void update(State s)
@@ -106,7 +117,7 @@ public class RpnCalc extends Calculator
                 }
 
                 public void remove()
-                { 
+                {
                     throw new UnsupportedOperationException("Reducing streams are immutable.");
                 }
             };
@@ -146,7 +157,7 @@ public class RpnCalc extends Calculator
         {
             this.subCmds.addAll(subCmds);
         }
-        
+
         public State execute(State in)
         {
             return new CommandStateReduction(in, subCmds).terminalState();
@@ -166,7 +177,7 @@ public class RpnCalc extends Calculator
             for(int ii = 0; ii < 500000; ii++) {
 
                 s = new State();
-                
+
                 s.stack.push(new Double(3));
                 s.stack.push(new Double(4));
                 s.stack.push(new Double(0));
@@ -196,7 +207,7 @@ public class RpnCalc extends Calculator
             for(int ii = 0; ii < 500000; ii++) {
 
                 s = new State();
-                
+
                 s.stack.push(new Double(3));
                 s.stack.push(new Double(4));
                 s.stack.push(new Double(0));
@@ -295,7 +306,7 @@ public class RpnCalc extends Calculator
                     s.stack.push(Math.pow((x * x) + (y * y) + (z * z), 0.5));
                 }
             });
-                
+
         cmds.put("drop", new Command() {
                 public void update(State s) {
                     s.stack.pop();
@@ -383,7 +394,7 @@ public class RpnCalc extends Calculator
                     System.out.print("> ");
 
                     String cmdLine = System.console().readLine();
- 
+
                     if (cmdLine == null)
                         return;
 
@@ -413,7 +424,7 @@ public class RpnCalc extends Calculator
                 }
 
                 public void remove()
-                { 
+                {
                     throw new UnsupportedOperationException("Command streams are immutable.");
                 }
             };

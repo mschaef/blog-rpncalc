@@ -1,8 +1,18 @@
+;; Copyright (c) KSM Technology Partners. All rights reserved.
+;;
+;; The use and distribution terms for this software are covered by the
+;; Eclipse Public License 1.0 (https://opensource.org/licenses/EPL-2.0)
+;; which can be found in the file epl-v10.html at the root of this distribution.
+;; By using this software in any fashion, you are agreeing to be bound by
+;; the terms of this license.
+;;
+;; You must not remove this notice, or any other, from this software.
+
 (ns rpn-calc.dfcompile
   (:require [clojure.set :refer [difference]]))
 
 (defmacro stack-op [ before-pic after-pic ]
-  `(with-meta (fn [ { [ ~@before-pic & more# ] :stack } ] 
+  `(with-meta (fn [ { [ ~@before-pic & more# ] :stack } ]
                 { :stack (concat ~after-pic more# ) } )
      { :before-pic '~before-pic :after-pic '~after-pic}))
 
@@ -22,7 +32,7 @@
 
       'rcl (fn [ { [rnum & more] :stack regs :regs} ]
            { :stack (cons (regs rnum) more) })
-      
+
       'undo (fn [ { prev :prev } ]
               prev )
 
@@ -30,7 +40,7 @@
               false)
       })
 
-(defn make-push-command [ object ] 
+(defn make-push-command [ object ]
   (eval `(stack-op [ ] [ ~object ])))
 
 (defn find-command [ object ]
@@ -145,7 +155,7 @@
   (let [ { bmap :bmap stack :stack } (composite-command-effect cmd-names)
          before-pic (bmap-stack-symbols bmap)
          after-pic (take-while temp-sym? stack)]
- 
+
     `(fn [ { [ ~@before-pic & more# ] :stack } ]
        (let ~(vec (mapcat (fn [ sym ] `(~sym ~(bmap sym)))
                           (bmap-binding-order bmap)))
@@ -201,4 +211,4 @@
     (println 'dist-3-ifc)
     (time (dotimes [ _ n ] (dist-3-ifc { :stack [ 1 2 3 ] })))
     (println 'dist-3-cfc)
-    (time (dotimes [ _ n ] (dist-3-cfc { :stack [ 1 2 3 ] }))))) 
+    (time (dotimes [ _ n ] (dist-3-cfc { :stack [ 1 2 3 ] })))))

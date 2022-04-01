@@ -3,19 +3,25 @@ blog-rpncalc
 
 ## Description
 
-This project contains a set of JVM implementations of a reverse-polish
-style calculator.  They are written to be used as supporting materials
-for a set of blog postings on the
-[KSM Partners Blog](http://www.ksmpartners.com/blog/):
+This project contains a set of JVM implementations of a simple
+[reverse polish notation](https://en.wikipedia.org/wiki/Reverse_Polish_notation)
+calculator. They were originally written as supporting materials for a
+discussion on the relationship between functional programming and the
+command pattern that I wrote for the [KSM Partners](http://www.ksmpartners.com/)
+blog. However, that blog has since changed its format, and KSM has graciously
+allowed me to re-home the articles myself.
 
-* [Part 0: Introduction](http://www.ksmpartners.com/2013/10/middle-school-math-reverse-polish-notation-and-software-design/)
-* [Part 1: A Simple RPN Calcualtor in Java and the Command Pattern](http://www.ksmpartners.com/2013/10/rpn-calc-part-1-a-simple-calculator-in-java-and-the-command-pattern/)
-* [Part 2: Composite Commands](http://www.ksmpartners.com/2013/10/rpn-calc-part-2-composite-commands/)
-* [Part 3: Implementing Undo](http://www.ksmpartners.com/2013/11/rpn-calc-part-3-undo/)
-* [Part 4: A Noun for State](http://www.ksmpartners.com/2013/12/rpn-calc-part-4-a-noun-for-state/)
-* [Part 5: Eliminating the Globals](http://www.ksmpartners.com/2013/12/rpn-calc-part-5-eliminating-the-globals/)
-* [Part 6: Refactoring the REPL](http://www.ksmpartners.com/2014/01/rpn-calc-part-6-refactoring-the-repl-with-an-iterator/)
-* [Part 7: Refactoring Loops with Reduce](http://www.ksmpartners.com/2014/01/rpn-calc-part-7-refactoring-loops-with-reduce/)
+* [Part 0: Introduction](https://www.mschaef.com/ksm/rpncalc_00)
+* [Part 1: A Simple RPN Calcualtor in Java and the Command Pattern](https://www.mschaef.com/ksm/rpncalc_01)
+* [Part 2: Composite Commands](https://www.mschaef.com/ksm/rpncalc_02)
+* [Part 3: Implementing Undo](https://www.mschaef.com/ksm/rpncalc_03)
+* [Part 4: A Noun for State](https://www.mschaef.com/ksm/rpncalc_04)
+* [Part 5: Eliminating the Globals](https://www.mschaef.com/ksm/rpncalc_05)
+* [Part 6: Refactoring the REPL](https://www.mschaef.com/ksm/rpncalc_06)
+* [Part 7: Refactoring Loops with Reduce](https://www.mschaef.com/ksm/rpncalc_07)
+* [Part 8: Moving to Clojure](https://www.mschaef.com/ksm/rpncalc_08)
+* [Part 9: State and Commands in Clojure](https://www.mschaef.com/ksm/rpncalc_09)
+* [Part 10: Macros and the Intent of the Code](https://www.mschaef.com/ksm/rpncalc_10)
 
 Because of the intent for this code to support a series of blog posts,
 the code is focused more on concision and readability than on
